@@ -1,0 +1,19 @@
+{
+  "name": "lw-ffmpeg-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "aadilmallick",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
