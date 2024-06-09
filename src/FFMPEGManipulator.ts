@@ -153,13 +153,3 @@ export default class FFMPEGManipulator {
     );
   }
 }
-
-// async function main() {
-//   const time = Date.now();
-//   const filePath = CLI.getFilePath("../testvideos/rain.mp4");
-//   const outputPath = CLI.getFilePath("../testvideos/output.mp4");
-//   await FFMPEGManipulator.createVideoSlice(filePath, outputPath, 3, 6);
-//   console.log(`Time taken: ${((Date.now() - time) / 1000).toFixed(2)}s`);
-// }
-
-// main();
