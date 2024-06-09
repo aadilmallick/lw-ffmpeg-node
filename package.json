@@ -1,19 +1,38 @@
 {
   "name": "lw-ffmpeg-node",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "vitest",
-    "build": "tsc"
+    "test": "vitest --watch --reporter=verbose",
+    "build": "tsup",
+    "tsc-build": "rm -rf dist && tsc",
+    "test-once": "vitest run"
   },
   "type": "module",
-  "keywords": [],
+  "keywords": [
+    "ffmpeg",
+    "node",
+    "lw-ffmpeg-node",
+    "lw-ffmpeg",
+    "ffmpeg-node"
+  ],
   "author": "aadilmallick",
   "license": "ISC",
   "description": "",
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "tsup": "^8.1.0",
+    "tsx": "^4.14.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aadilmallick/lw-ffmpeg-node.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts"
 }
