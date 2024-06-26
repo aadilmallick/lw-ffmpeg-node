@@ -1,4 +1,4 @@
-import { spawnSync, spawn } from "child_process";
+import { spawnSync, spawn, execFile } from "child_process";
 import * as path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -9,6 +9,30 @@ class LinuxError extends Error {
     super(`Running the '${command}' command caused this error`);
     console.error(extraData);
   }
+}
+
+export class Print {
+  private static colors = {
+    RED: "\x1b[31m",
+    GREEN: "\x1b[32m",
+    YELLOW: "\x1b[33m",
+    BLUE: "\x1b[34m",
+    MAGENTA: "\x1b[35m",
+    CYAN: "\x1b[36m",
+  };
+  private static RESET = "\x1b[0m";
+  static red = (...args: any[]) =>
+    console.log(Print.colors.RED, ...args, Print.RESET);
+  static green = (...args: any[]) =>
+    console.log(Print.colors.GREEN, ...args, Print.RESET);
+  static yellow = (...args: any[]) =>
+    console.log(Print.colors.YELLOW, ...args, Print.RESET);
+  static blue = (...args: any[]) =>
+    console.log(Print.colors.BLUE, ...args, Print.RESET);
+  static magenta = (...args: any[]) =>
+    console.log(Print.colors.MAGENTA, ...args, Print.RESET);
+  static cyan = (...args: any[]) =>
+    console.log(Print.colors.CYAN, ...args, Print.RESET);
 }
 
 export default class CLI {
@@ -65,6 +89,33 @@ export default class CLI {
           resolve(output.trim());
         }
       });
+    });
+  }
+
+  static cmd(
+    filepath: string,
+    command: string,
+    options?: { cwd?: string }
+  ): Promise<string> {
+    const args = command.split(" ");
+    const cliOptions = options ? options : {};
+    return new Promise((resolve, reject) => {
+      execFile(
+        filepath,
+        args,
+        {
+          maxBuffer: 500 * 1_000_000,
+          ...cliOptions,
+        },
+        (error, stdout, stderr) => {
+          if (error) {
+            Print.yellow(`Error executing ${path.basename(filepath)}:`, error);
+            reject(stderr);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
     });
   }
 
