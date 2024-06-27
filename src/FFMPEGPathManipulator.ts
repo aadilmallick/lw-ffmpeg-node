@@ -14,7 +14,7 @@ export class YTDLPModel {
     return await this.cmd("--version");
   }
 
-  async downloadVideo(url: string) {
+  async downloadVideo(url: string, destination: string) {
     // const stdout = await this.cmd(
     //   `-i -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' ${url}`
     // );
@@ -24,7 +24,7 @@ export class YTDLPModel {
       throw new Error("Invalid Youtube URL");
     }
     const stdout = await this.cmd(`${ytUrl}`, {
-      cwd: path.join(__dirname, "..", "..", "src/videos"),
+      cwd: destination,
     });
     return stdout;
   }
