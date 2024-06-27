@@ -31,7 +31,7 @@ export class YTDLPModel {
 }
 
 export class FFMPEGPathModel {
-  private ffprobe: FFPROBEModel;
+  public ffprobe: FFPROBEModel;
   constructor(private ffmpegPath: string, private ffprobePath: string) {
     this.ffprobe = new FFPROBEModel(this.ffprobePath);
   }
