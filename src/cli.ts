@@ -11,7 +11,7 @@ class LinuxError extends Error {
   }
 }
 
-export class Print {
+class Print {
   private static colors = {
     RED: "\x1b[31m",
     GREEN: "\x1b[32m",
@@ -47,8 +47,8 @@ export default class CLI {
   }
 
   static getFilePath(filePath: string) {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+    // const __filename = fileURLToPath(import.meta.url);
+    // const __dirname = path.dirname(__filename);
     return path.join(__dirname, path.normalize(filePath));
   }
 

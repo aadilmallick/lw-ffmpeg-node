@@ -7,8 +7,8 @@ import FFMPEGManipulator from "../FFMPEGManipulator";
 
 describe("ffmpeg", () => {
   it("gets info", async () => {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+    // const __filename = fileURLToPath(import.meta.url);
+    // const __dirname = path.dirname(__filename);
     const filepath = path.join(__dirname, "../../testvideos/rain.mp4");
     const content = await FFMPEGManipulator.getInfo(filepath);
     expect(content).toBeTruthy();
@@ -18,8 +18,8 @@ describe("ffmpeg", () => {
   it(
     "slices video",
     async () => {
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = path.dirname(__filename);
+      // const __filename = fileURLToPath(import.meta.url);
+      // const __dirname = path.dirname(__filename);
       const filepath = path.join(__dirname, "../../testvideos/rain.mp4");
       const output = path.join(__dirname, "../../testvideos/output.mp4");
       await FFMPEGManipulator.createVideoSlice(filepath, output, 4, 10, {

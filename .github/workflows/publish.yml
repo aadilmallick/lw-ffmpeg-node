@@ -16,7 +16,7 @@ jobs:
       - name: "Setup FFmpeg"
         uses: FedericoCarboni/setup-ffmpeg@v3
       - name: build
-        run: npm install && npm run tsc-build
+        run: npm install && npm run build
       - name: test
         run: npx vitest run
       - name: publish

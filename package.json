@@ -1,14 +1,12 @@
 {
   "name": "lw-ffmpeg-node",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/index.js",
   "scripts": {
     "test": "vitest --watch --reporter=verbose",
-    "build": "tsup",
-    "tsc-build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && tsc",
     "test-once": "vitest run"
   },
-  "type": "module",
   "keywords": [
     "ffmpeg",
     "node",
@@ -33,6 +31,5 @@
   "files": [
     "dist"
   ],
-  "module": "dist/index.js",
   "types": "dist/index.d.ts"
 }
