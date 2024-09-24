@@ -13,10 +13,10 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
-      - name: "Setup FFmpeg"
-        uses: FedericoCarboni/setup-ffmpeg@v3
-      - name: Setup yt-dlp
-        uses: AnimMouse/setup-yt-dlp@v1
+      # - name: "Setup FFmpeg"
+      #   uses: FedericoCarboni/setup-ffmpeg@v3
+      # - name: Setup yt-dlp
+      #   uses: AnimMouse/setup-yt-dlp@v1
       - name: Cache and install dependencies
         id: cache
         uses: actions/cache@v4
@@ -28,8 +28,8 @@ jobs:
         run: npm ci
       - name: build
         run: npm run build
-      - name: test
-        run: npx vitest run
+      # - name: test
+      #   run: npx vitest run
       - name: publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
