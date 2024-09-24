@@ -2,7 +2,8 @@ import { spawn } from "child_process";
 import CLI from "./cli";
 import fs from "fs/promises";
 
-interface ProcessOptions {
+export interface ProcessOptions {
+  cwd?: string;
   quiet?: boolean;
   detached?: boolean;
 }

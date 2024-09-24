@@ -1,8 +1,9 @@
 import { spawnSync, spawn, execFile } from "child_process";
 import * as path from "path";
-import fs from "fs";
+import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import os from "os";
+import { ProcessOptions } from "./FFMPEGManipulator";
 
 class LinuxError extends Error {
   constructor(command: string, extraData?: string) {
@@ -33,6 +34,33 @@ class Print {
     console.log(Print.colors.MAGENTA, ...args, Print.RESET);
   static cyan = (...args: any[]) =>
     console.log(Print.colors.CYAN, ...args, Print.RESET);
+}
+
+export class FileManager {
+  static async exists(filePath: string) {
+    try {
+      await fs.access(filePath);
+      return true; // The file exists
+    } catch (error) {
+      return false; // The file does not exist
+    }
+  }
+
+  static async createDirectory(
+    directoryPath: string,
+    options?: {
+      overwrite?: boolean;
+    }
+  ) {
+    if (await this.exists(directoryPath)) {
+      if (options?.overwrite) {
+        await fs.rm(directoryPath, { recursive: true, force: true });
+        await fs.mkdir(directoryPath, { recursive: true });
+      }
+    } else {
+      await fs.mkdir(directoryPath, { recursive: true });
+    }
+  }
 }
 
 export default class CLI {
@@ -67,9 +95,12 @@ export default class CLI {
     }
   }
 
-  static async linuxWithData(command: string): Promise<string> {
+  static linuxWithData(
+    command: string,
+    options?: ProcessOptions
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const child = spawn(command, { shell: true });
+      const child = spawn(command, { shell: true, ...options });
 
       let output = "";
       let errorOutput = "";
@@ -95,17 +126,16 @@ export default class CLI {
   static cmd(
     filepath: string,
     command: string,
-    options?: { cwd?: string }
+    options?: ProcessOptions
   ): Promise<string> {
     const args = command.split(" ");
-    const cliOptions = options ? options : {};
     return new Promise((resolve, reject) => {
       execFile(
         filepath,
         args,
         {
           maxBuffer: 500 * 1_000_000,
-          ...cliOptions,
+          ...options,
         },
         (error, stdout, stderr) => {
           if (error) {
@@ -119,17 +149,13 @@ export default class CLI {
     });
   }
 
-  static async linux(
-    command: string,
-    { quiet = false, detached = false } = {}
-  ) {
+  static linux(command: string, options?: ProcessOptions) {
     try {
       // send back stderr and stdout
       return new Promise((resolve, reject) => {
         const child = spawn(command, {
           shell: true,
-          stdio: quiet ? ["ignore", "pipe", "pipe"] : "inherit",
-          detached,
+          ...options,
         });
         let stdout = "";
         let stderr = "";

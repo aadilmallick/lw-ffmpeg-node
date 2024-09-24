@@ -4,6 +4,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import * as path from "path";
 import FFMPEGManipulator from "../FFMPEGManipulator";
+import { YTDLPModel } from "../FFMPEGPathManipulator";
 
 describe("ffmpeg", () => {
   it("gets info", async () => {
@@ -30,4 +31,22 @@ describe("ffmpeg", () => {
       timeout: 1000 * 60,
     }
   );
+});
+
+const basicModel = new YTDLPModel();
+
+describe("ytdlp", () => {
+  it("gets info", async () => {
+    const stdout = await basicModel.getVersion();
+    expect(stdout).toBeTruthy();
+  }, 30000);
+
+  it("downloads vid", async () => {
+    const destinationpath = path.join(__dirname, "../../testvideos");
+    const stdout = await basicModel.downloadVideo(
+      "https://www.youtube.com/watch?v=BZP1rYjoBgI",
+      destinationpath
+    );
+    expect(stdout).toBeTruthy();
+  }, 30000);
 });

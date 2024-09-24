@@ -2,31 +2,66 @@
  * A class that allows support for using FFMPEG by providing a path to it.
  */
 
-import CLI from "./cli";
-import * as path from "path";
+import CLI, { FileManager } from "./cli";
+import { ProcessOptions } from "./FFMPEGManipulator";
 
 export class YTDLPModel {
-  constructor(private ytdlpPath: string) {}
-  cmd: (command: string, options?: { cwd?: string }) => Promise<string> =
-    CLI.cmd.bind(null, this.ytdlpPath);
+  constructor(private ytdlpPath?: string) {
+    ytdlpPath &&
+      FileManager.exists(ytdlpPath).then((exists) => {
+        if (!exists) {
+          throw new Error(
+            `yt-dlp path does not exist. Path provided: ${ytdlpPath}`
+          );
+        }
+      });
+  }
+
+  private async linuxCmd(command: string, options?: ProcessOptions) {
+    return (await CLI.linux(`yt-dlp ${command}`, options)) as unknown as string;
+  }
+
+  cmd: (command: string, options?: ProcessOptions) => Promise<string> = this
+    .ytdlpPath
+    ? CLI.cmd.bind(null, this.ytdlpPath)
+    : this.linuxCmd;
 
   async getVersion() {
     return await this.cmd("--version");
   }
 
-  async downloadVideo(url: string, destination: string) {
-    // const stdout = await this.cmd(
-    //   `-i -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' ${url}`
-    // );
-    const youtubeVideoRegex = /https:\/\/www\.youtube\.com\/watch\?v=\w+/;
-    const ytUrl = (youtubeVideoRegex.exec(url) || [null])[0];
+  async downloadVideo(
+    url: string,
+    destination: string,
+    options?: {
+      cliOptions?: Exclude<ProcessOptions, "cwd">;
+      shouldOverwrite?: boolean;
+    }
+  ) {
+    const { videoId, ytUrl } = YTDLPModel.getYoutubeId(url);
+    const stdout = await this.cmd(
+      `${ytUrl} ${options?.shouldOverwrite ? "--force-overwrites" : ""}`,
+      {
+        cwd: destination,
+      }
+    );
+    return stdout;
+  }
+
+  static getYoutubeId(url: string) {
+    const youtubeVideoRegex = /https:\/\/www\.youtube\.com\/watch\?v=(\w|-)+/;
+    let ytUrl: string | null = null;
+
+    ytUrl = youtubeVideoRegex.exec(url)![0];
+
     if (!ytUrl) {
       throw new Error("Invalid Youtube URL");
     }
-    const stdout = await this.cmd(`${ytUrl}`, {
-      cwd: destination,
-    });
-    return stdout;
+    const videoId = ytUrl.split("=")[1];
+    return {
+      videoId,
+      ytUrl,
+    };
   }
 }
 
