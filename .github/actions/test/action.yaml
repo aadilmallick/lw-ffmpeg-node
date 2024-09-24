@@ -1,0 +1,6 @@
+# action.yml
+name: "test"
+description: "install ffmpeg and yt-dlp and run tests"
+runs:
+  using: "docker"
+  image: "Dockerfile"

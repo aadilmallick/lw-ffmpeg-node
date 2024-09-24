@@ -15,8 +15,19 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: "Setup FFmpeg"
         uses: FedericoCarboni/setup-ffmpeg@v3
+      - name: Setup yt-dlp
+        uses: AnimMouse/setup-yt-dlp@v1
+      - name: Cache and install dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
       - name: build
-        run: npm install && npm run build
+        run: npm run build
       - name: test
         run: npx vitest run
       - name: publish
