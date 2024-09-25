@@ -82,7 +82,10 @@ export default class FFMPEGManipulator {
     output_path: string,
     inpoint: number,
     outpoint: number,
-    options?: ProcessOptions
+    options?: {
+      cliOptions?: ProcessOptions;
+      compressAndConvertToMP4?: boolean;
+    }
   ) {
     if (inpoint >= outpoint) {
       throw new Error("inpoint must be less than outpoint");
@@ -95,12 +98,22 @@ export default class FFMPEGManipulator {
       throw new Error("outpoint must be less than the video duration");
     }
 
-    await CLI.linux(
-      `ffmpeg -y -ss ${inpoint} -t ${
-        outpoint - inpoint
-      } -i ${input_path} -c copy ${output_path}`,
-      options
-    );
+    if (options?.compressAndConvertToMP4) {
+      await CLI.linux(
+        `ffmpeg -y -ss ${inpoint} -t ${
+          outpoint - inpoint
+        } -i ${input_path} -vcodec libx264 -crf 28 -acodec copy ${output_path}`,
+        options?.cliOptions
+      );
+    } else {
+      await CLI.linux(
+        `ffmpeg -y -ss ${inpoint} -t ${
+          outpoint - inpoint
+        } -i ${input_path} -c copy ${output_path}`,
+        options?.cliOptions
+      );
+    }
+
     return output_path;
   }
 

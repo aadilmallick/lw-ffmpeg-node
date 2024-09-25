@@ -110,7 +110,7 @@ export class FFMPEGPathModel {
     inpoint: number,
     outpoint: number,
     options?: {
-      convertToMp4?: boolean;
+      compressAndConvertToMP4?: boolean;
     }
   ) {
     if (inpoint >= outpoint) {
@@ -124,11 +124,11 @@ export class FFMPEGPathModel {
       throw new Error("outpoint must be less than the video duration");
     }
 
-    if (options?.convertToMp4) {
+    if (options?.compressAndConvertToMP4) {
       await this.cmd(
         `-y -ss ${inpoint} -t ${
           outpoint - inpoint
-        } -i ${input_path} -vcodec libx264 -acodec copy ${output_path}`
+        } -i ${input_path} -vcodec libx264 -crf 28 -acodec aac ${output_path}`
       );
     } else {
       await this.cmd(
