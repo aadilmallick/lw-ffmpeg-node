@@ -10,7 +10,7 @@ export interface ProcessOptions {
 
 export default class FFMPEGManipulator {
   static async getInfo(filePath: string) {
-    const jsonPath = CLI.getFilePath("info.json");
+    const jsonPath = CLI.getAbsolutePath("info.json");
     const part1 =
       "ffprobe -v error -print_format json -select_streams v:0 -show_format -show_streams";
     const part2 =
@@ -41,13 +41,13 @@ export default class FFMPEGManipulator {
 
   static async getVideoDuration(filePath: string) {
     const command = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
-    const duration = await CLI.linuxWithData(`${command}`);
+    const duration = await CLI.linux(`${command}`);
     return Number(duration);
   }
 
   static async getVideoFramerate(filePath: string) {
     const command = `ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
-    const frameRate = await CLI.linuxWithData(`${command}`);
+    const frameRate = await CLI.linux(`${command}`);
     console.log(frameRate);
     return this.convertFractionStringToNumber(frameRate);
   }

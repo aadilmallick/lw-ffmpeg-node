@@ -5,6 +5,14 @@
 import CLI, { FileManager } from "./cli";
 import { ProcessOptions } from "./FFMPEGManipulator";
 
+type WithKeys<T, V extends keyof T> = {
+  [K in V]: T[K];
+};
+
+type WithoutKeys<T, V extends keyof T> = {
+  [K in Exclude<keyof T, V>]: T[K];
+};
+
 export class YTDLPModel {
   constructor(private ytdlpPath?: string) {
     ytdlpPath &&
@@ -34,22 +42,31 @@ export class YTDLPModel {
     url: string,
     destination: string,
     options?: {
-      cliOptions?: Exclude<ProcessOptions, "cwd">;
+      cliOptions?: Partial<WithoutKeys<ProcessOptions, "cwd">>;
       shouldOverwrite?: boolean;
+      quality?: "high";
     }
   ) {
-    const { videoId, ytUrl } = YTDLPModel.getYoutubeId(url);
+    const { ytUrl } = YTDLPModel.getYoutubeId(url);
+    const qualityOption =
+      options?.quality === "high"
+        ? `-f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'`
+        : "";
+    const overwriteOption = options?.shouldOverwrite
+      ? "--force-overwrites"
+      : "";
     const stdout = await this.cmd(
-      `${ytUrl} ${options?.shouldOverwrite ? "--force-overwrites" : ""}`,
+      `${overwriteOption} ${qualityOption} ${ytUrl}`,
       {
         cwd: destination,
+        ...options?.cliOptions,
       }
     );
     return stdout;
   }
 
   static getYoutubeId(url: string) {
-    const youtubeVideoRegex = /https:\/\/www\.youtube\.com\/watch\?v=(\w|-)+/;
+    const youtubeVideoRegex = /https:\/\/www\.youtube\.com\/watch\?v=((\w|-)+)/;
     let ytUrl: string | null = null;
 
     ytUrl = youtubeVideoRegex.exec(url)![0];
@@ -92,7 +109,9 @@ export class FFMPEGPathModel {
     output_path: string,
     inpoint: number,
     outpoint: number,
-    encode = false
+    options?: {
+      convertToMp4?: boolean;
+    }
   ) {
     if (inpoint >= outpoint) {
       throw new Error("inpoint must be less than outpoint");
@@ -105,7 +124,7 @@ export class FFMPEGPathModel {
       throw new Error("outpoint must be less than the video duration");
     }
 
-    if (encode) {
+    if (options?.convertToMp4) {
       await this.cmd(
         `-y -ss ${inpoint} -t ${
           outpoint - inpoint

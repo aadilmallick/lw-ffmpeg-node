@@ -4,19 +4,39 @@
 
 ## Installation
 
+These libraries requires yt-dlp and ffmpeg to be installed on the system. You can install them using the following commands.
+
+Install ffmpeg on WSL:
+
+```bash
+sudo add-apt-repository ppa:mc3man/trusty-media
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get install ffmpeg
+```
+
+Install yt-dlp on WSL:
+
+```bash
+sudo apt-get install python3-pip
+pip3 install yt-dlp
+```
+
+You can then install the library like so:
+
 ```bash
 npm install lw-ffmpeg-node
 ```
 
 ## Usage
 
-### Importing the Library
+### `FFMPEGManipulator`
 
 ```javascript
 import FFMPEGManipulator from "lw-ffmpeg-node";
 ```
 
-### Methods
+The `FFMPEGManipulator` class provides various methods for manipulating video files. This expects that the `ffmpeg` command is available in the system path.
 
 All these methods are static methods on the class.
 
@@ -63,11 +83,112 @@ async function main() {
 main();
 ```
 
-## Installing ffmpeg on wsl
+### CLI
 
-```bash
-sudo add-apt-repository ppa:mc3man/trusty-media
-sudo apt-get update
-sudo apt-get dist-upgrade
-sudo apt-get install ffmpeg
+This is the basis behind how ffmpeg and ytdlp work with the command line. The CLI class is a wrapper around the child_process module in Node.js. It provides a simple way to execute commands in the terminal.
+
+```ts
+export default class CLI {
+  static cmd(
+    filepath: string,
+    command: string,
+    options?: ProcessOptions
+  ): Promise<string> {
+    const args = command
+      .match(/(?:[^\s"]+|"[^"]*")+/g)
+      ?.map((arg) => arg.replace(/"/g, ""));
+    if (!args) {
+      throw new Error("Invalid command");
+    }
+    return new Promise((resolve, reject) => {
+      execFile(
+        filepath,
+        args,
+        {
+          maxBuffer: 500 * 1_000_000,
+          ...options,
+        },
+        (error, stdout, stderr) => {
+          if (error) {
+            Print.yellow(`Error executing ${path.basename(filepath)}:`, error);
+            reject(stderr);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
+    });
+  }
+
+  static linux(command: string, options?: ProcessOptions) {
+    try {
+      // send back stderr and stdout
+      return new Promise((resolve, reject) => {
+        const child = spawn(command, {
+          shell: "bash",
+          ...options,
+        });
+        let stdout = "";
+        let stderr = "";
+
+        child.stdout?.on("data", (data) => {
+          options?.quiet === false && console.log(data.toString());
+          stdout += data.toString();
+        });
+
+        child.stderr?.on("data", (data) => {
+          options?.quiet === false && console.log(data.toString());
+          stderr += data.toString();
+        });
+
+        child.on("close", (code) => {
+          if (code !== 0) {
+            reject(new LinuxError(command, stderr));
+          } else {
+            resolve(stdout);
+          }
+        });
+      });
+    } catch (e) {
+      throw new LinuxError(command);
+    }
+  }
+}
+```
+
+### FileManager
+
+### Print
+
+### YTDLPModel
+
+There are two ways to use YTDLPModel:
+
+1. Use with ytdlp sitting on the path.
+2. Point to a specific binary of ytdlp.
+
+```javascript
+import { YTDLPModel } from "./src/FFMPEGPathManipulator";
+
+const path = "C:\\Users\\Waadl\\src\\binaries\\yt-dlp.exe";
+
+const url = "https://www.youtube.com/watch?v=_Td7JjCTfyc";
+
+const ytdlp = new YTDLPModel(path);
+async function main() {
+  // downloads video to current directory
+  await ytdlp.downloadVideo(url, "./", {
+    // shouldOverwite enables the --force-overwrites flag to overwrite downloading same video
+    shouldOverwrite: true,
+    // if quality is high, ensures mp4 download
+    quality: "high",
+    // cliOptions to determine command line behavior
+    cliOptions: {
+      // quiet flag to suppress output. If false, then prints the output as it comes
+      quiet: false,
+    },
+  });
+}
+
+main();
 ```

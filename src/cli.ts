@@ -12,7 +12,7 @@ class LinuxError extends Error {
   }
 }
 
-class Print {
+export class Print {
   private static colors = {
     RED: "\x1b[31m",
     GREEN: "\x1b[32m",
@@ -74,12 +74,14 @@ export default class CLI {
     return platform === "win32";
   }
 
-  static getFilePath(filePath: string) {
-    // const __filename = fileURLToPath(import.meta.url);
-    // const __dirname = path.dirname(__filename);
+  static getAbsolutePath(filePath: string) {
     return path.join(__dirname, path.normalize(filePath));
   }
 
+  /**
+   *
+   * Synchronous linux command execution. Returns the stdout
+   */
   static linux_sync(command: string, args: string[] = []) {
     try {
       const { status, stdout, stderr } = spawnSync(command, args, {
@@ -95,40 +97,25 @@ export default class CLI {
     }
   }
 
-  static linuxWithData(
-    command: string,
-    options?: ProcessOptions
-  ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, { shell: true, ...options });
-
-      let output = "";
-      let errorOutput = "";
-
-      child.stdout.on("data", (data) => {
-        output += data.toString();
-      });
-
-      child.stderr.on("data", (data) => {
-        errorOutput += data.toString();
-      });
-
-      child.on("close", (code) => {
-        if (code !== 0) {
-          reject(new Error(`ffprobe exited with code ${code}: ${errorOutput}`));
-        } else {
-          resolve(output.trim());
-        }
-      });
-    });
-  }
-
+  /**
+   * Asynchronous command execution for executable files
+   *
+   * @param filepath the path to the executable
+   * @param command any commands to pass to the executable
+   * @param options cli options
+   * @returns stdout or stderr
+   */
   static cmd(
     filepath: string,
     command: string,
     options?: ProcessOptions
   ): Promise<string> {
-    const args = command.split(" ");
+    const args = command
+      .match(/(?:[^\s"]+|"[^"]*")+/g)
+      ?.map((arg) => arg.replace(/"/g, ""));
+    if (!args) {
+      throw new Error("Invalid command");
+    }
     return new Promise((resolve, reject) => {
       execFile(
         filepath,
@@ -149,7 +136,14 @@ export default class CLI {
     });
   }
 
-  static linux(command: string, options?: ProcessOptions) {
+  /**
+   * Asynchronous command execution for bash shell
+   *
+   * @param command the command to run
+   * @param options cli options
+   * @returns stdout or stderr
+   */
+  static linux(command: string, options?: ProcessOptions): Promise<string> {
     try {
       // send back stderr and stdout
       return new Promise((resolve, reject) => {
@@ -161,10 +155,12 @@ export default class CLI {
         let stderr = "";
 
         child.stdout?.on("data", (data) => {
+          options?.quiet === false && console.log(data.toString());
           stdout += data.toString();
         });
 
         child.stderr?.on("data", (data) => {
+          options?.quiet === false && console.log(data.toString());
           stderr += data.toString();
         });
 
